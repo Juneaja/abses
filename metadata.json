@@ -1,0 +1,11 @@
+{
+  "name": "Absensi Klinik Sartika",
+  "description": "Aplikasi absensi real-time berbasis geofencing untuk Klinik Sartika Lamongan. Dilengkapi panel admin, dashboard monitoring, notifikasi pengingat, dan rekap bulanan otomatis.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

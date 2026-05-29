@@ -1,0 +1,108 @@
+{
+  "entities": {
+    "employee": {
+      "title": "Employee",
+      "description": "Profil karyawan dan kredensial akun",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "nip": { "type": "string" },
+        "role": { "type": "string", "enum": ["employee", "admin"] },
+        "position": { "type": "string" },
+        "email": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "joinDate": { "type": "string" },
+        "avatar": { "type": "string" }
+      },
+      "required": ["id", "name", "nip", "role", "position", "email", "status", "joinDate"]
+    },
+    "attendanceRecord": {
+      "title": "Attendance Record",
+      "description": "Catatan absen masuk dan pulang karyawan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "date": { "type": "string" },
+        "clockInTime": { "type": "string" },
+        "clockOutTime": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "distanceToGeofence": { "type": "number" },
+        "isWithinGeofence": { "type": "boolean" },
+        "checkInStatus": { "type": "string" },
+        "checkOutStatus": { "type": "string" },
+        "notes": { "type": "string" },
+        "selfie": { "type": "string" },
+        "shiftId": { "type": "string" },
+        "shiftName": { "type": "string" }
+      },
+      "required": ["id", "employeeId", "employeeName", "date", "clockInTime", "isWithinGeofence", "checkInStatus", "checkOutStatus"]
+    },
+    "geofenceConfig": {
+      "title": "Geofence Config",
+      "description": "Konfigurasi jangkauan lokasi kantor dan batas waktu",
+      "type": "object",
+      "properties": {
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "radius": { "type": "number" },
+        "address": { "type": "string" },
+        "officeName": { "type": "string" },
+        "checkInTime": { "type": "string" },
+        "checkOutTime": { "type": "string" },
+        "lateToleranceMinutes": { "type": "number" },
+        "logo": { "type": "string" },
+        "favicon": { "type": "string" },
+        "logoFooter": { "type": "string" },
+        "shifts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "checkInTime": { "type": "string" },
+              "checkOutTime": { "type": "string" }
+            },
+            "required": ["id", "name", "checkInTime", "checkOutTime"]
+          }
+        }
+      },
+      "required": ["latitude", "longitude", "radius", "address", "officeName", "checkInTime", "checkOutTime", "lateToleranceMinutes"]
+    },
+    "systemLog": {
+      "title": "System Log",
+      "description": "Catatan log riwayat aktivitas sistem",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "employeeName": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "message", "type"]
+    }
+  },
+  "firestore": {
+    "employees": {
+      "schema": "employee",
+      "description": "Koleksi data karyawan"
+    },
+    "attendanceRecords": {
+      "schema": "attendanceRecord",
+      "description": "Koleksi catatan absensi karyawan harian"
+    },
+    "settings": {
+      "schema": "geofenceConfig",
+      "description": "Konfigurasi parameter absensi dan lokasi kantor"
+    },
+    "logs": {
+      "schema": "systemLog",
+      "description": "Koleksi log aktivitas sistem"
+    }
+  }
+}

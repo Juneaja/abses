@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global safety net - Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Core global helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "ketoktotok@gmail.com" ||
+        (exists(/databases/$(database)/documents/employees/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == "admin")
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\:\\.]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 2. Employees Collection Rules
+    match /employees/{employeeId} {
+      allow read: if isSignedIn();
+      
+      // Strict creation and modification schema check
+      allow create, update: if isAdmin() && isValidId(employeeId) && (
+        incoming().id is string &&
+        incoming().name is string &&
+        incoming().nip is string &&
+        incoming().role is string && (incoming().role == "employee" || incoming().role == "admin") &&
+        incoming().position is string &&
+        incoming().email is string &&
+        incoming().status is string && (incoming().status == "active" || incoming().status == "inactive") &&
+        incoming().joinDate is string
+      );
+      
+      allow delete: if isAdmin() && isValidId(employeeId);
+    }
+
+    // 3. Attendance Records Rules
+    match /attendanceRecords/{recordId} {
+      // Users can only read their own reports or admins can read everything
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        resource.data.employeeId == request.auth.uid ||
+        resource.data.email == request.auth.token.email
+      );
+
+      // Anyone authenticated can clock-in, but must be the owner of the record
+      allow create: if isSignedIn() && isValidId(recordId) && (
+        incoming().employeeId == request.auth.uid || 
+        incoming().email == request.auth.token.email ||
+        isAdmin()
+      );
+
+      allow update: if isSignedIn() && isValidId(recordId) && (
+        existing().employeeId == request.auth.uid ||
+        existing().email == request.auth.token.email ||
+        isAdmin()
+      );
+
+      allow delete: if isAdmin() && isValidId(recordId);
+    }
+
+    // 4. Settings/Geofencing parameters
+    match /settings/{settingsId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isValidId(settingsId);
+    }
+
+    // 5. System Logs Collection Rules
+    match /logs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(logId);
+      allow update, delete: if isAdmin();
+    }
+  }
+}
